@@ -43,7 +43,7 @@ export const login = async (req, res) => {
     if (!isMatch) return res.status(401).send({ error: "Incorrect password!" });
   } catch (error) {
     console.error(error);
-    res.status(500).send({ error: "Error is happened to login!"} );
+    res.status(500).send({ error: "Error is happened to login!" });
   }
 
   const token = generateTokenAccess(userSaved);
