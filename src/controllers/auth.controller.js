@@ -52,11 +52,16 @@ export const login = async (req, res) => {
     httpOnly: true,
     maxAge: 1000 * 60 * 60 //1h
   });
+  res.cookie("role", userSaved.role, {
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60 // 1h
+  });
 
   res.send({ message: "login successfully!" });
 }
 
 export const logout = (req, res) => {
   res.clearCookie("token");
+  res.clearCookie("role");
   res.send({ message: "logout successfully!" });
 }
