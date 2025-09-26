@@ -3,7 +3,9 @@ dotenv.config();
 
 const {
   PORT,
-  DATABASE_URL,
+  USER_DB,
+  PASS_DB,
+  SERVER_DB,
   SALT_ROUNDS,
   TOKEN_SECRET,
   NODE_ENV
@@ -11,7 +13,7 @@ const {
 
 export default {
   port: PORT || 3000,
-  databaseUrl: DATABASE_URL,
+  databaseUrl: `mongodb+srv://${USER_DB}:${PASS_DB}@${SERVER_DB}/?retryWrites=true&w=majority&appName=nailsSpa`,
   salt: Number(SALT_ROUNDS),
   tokenSecret: TOKEN_SECRET,
   nodeEnv: NODE_ENV,

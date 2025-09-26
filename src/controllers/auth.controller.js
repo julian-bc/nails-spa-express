@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import config from "../config/config.js";
 import { generateTokenAccess } from "../utils/jwt.util.js";
+import User from "../models/user.model.js";
 
 export const register = async (req, res) => {
   const user = req.body;
@@ -8,20 +9,44 @@ export const register = async (req, res) => {
   const passwordHashed = await bcrypt.hash(user.password, config.salt);
   user.password = passwordHashed;
 
-  // db save logic
-  console.log("User saved:", user);
+  const newUser = new User({
+    names: user.names,
+    email: user.email,
+    password: passwordHashed,
+    salary: null,
+    phone: user.phone
+  });
+
+  try {
+    await newUser.save();
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ error: "Error is happened to save user"} );
+  }
 
   res.status(201).send({ message: "register successfully!" });
 }
 
-export const login = (req, res) => {
+export const login = async (req, res) => {
+  let userSaved = undefined;
   const user = req.body;
 
-  // db verify email logic
   console.log(`User try access with email:${user.email} pass:${user.password}`);
-  // bcrypt verify password logic
+  
+  try {
+    userSaved = await User.findOne({ email: user.email });
 
-  const token = generateTokenAccess(user);
+    if (!userSaved) return res.status(404).send(`User not founded with email: ${user.email}`);
+
+    const isMatch = await bcrypt.compare(user.password, userSaved.password);
+
+    if (!isMatch) return res.status(401).send({ error: "Incorrect password!" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ error: "Error is happened to login!"} );
+  }
+
+  const token = generateTokenAccess(userSaved);
   
   res.cookie("token", token, {
     httpOnly: true,

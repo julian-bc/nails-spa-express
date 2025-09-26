@@ -6,7 +6,6 @@ export const authMiddleware = (req, res, next) => {
 
   try {
     req.user = validateTokenAccess(token);
-    console.log(req.user);
     next();
   } catch (error) {
     res.status(403).send({ error: "Invalid Token!" });
