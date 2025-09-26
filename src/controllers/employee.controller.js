@@ -12,7 +12,7 @@ export const saveEmployee = async (req, res) => {
       names: employee.names,
       email: employee.email,
       password: passwordHashed,
-      salary: null,
+      salary: employee.salary,
       phone: employee.phone,
       role: "employee"
     });
