@@ -1,0 +1,30 @@
+{
+  "name": "nails-spa-express",
+  "version": "1.0.0",
+  "description": "Servidor Express encargado de procesar y almacenar datos de Nails Spa.",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node --watch server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/julian-bc/nails-spa-express.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/julian-bc/nails-spa-express/issues"
+  },
+  "homepage": "https://github.com/julian-bc/nails-spa-express#readme",
+  "dependencies": {
+    "bcrypt": "6.0.0",
+    "cookie-parser": "1.4.7",
+    "dotenv": "17.2.1",
+    "express": "5.1.0",
+    "jsonwebtoken": "9.0.2",
+    "mongoose": "8.18.0",
+    "morgan": "1.10.1"
+  }
+}
