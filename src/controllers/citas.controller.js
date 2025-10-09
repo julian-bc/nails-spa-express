@@ -1,4 +1,5 @@
 import Appointments from "../models/citas.model.js";
+import Location from "../models/location.model.js";
 import mongoose from "mongoose";
 
 export const createAppointment = async (req, res) => {
@@ -42,8 +43,11 @@ export const createAppointment = async (req, res) => {
     // Guardar en la base de datos
     const savedAppointment = await newAppointment.save();
 
+    // Añadir la cita a la sede correspondiente
+    const addToLocationResult = await addAppointmentToLocation(locationId, savedAppointment._id, res);
+
     // Realizar populate para obtener las propiedades necesarias
-    const populatedAppointment = await Appointments.findById(savedAppointment._id)
+    const populatedAppointment = addToLocationResult && await Appointments.findById(savedAppointment._id)
       .populate({ path: 'service', select: 'name price' })
       .populate({ path: 'employee', select: 'names phone' })
       .populate({ path: 'location', select: 'name address' })
@@ -56,5 +60,24 @@ export const createAppointment = async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Error al crear la cita." });
+  }
+};
+
+const addAppointmentToLocation = async (idSede, idCita, res) => {
+ 
+  try {
+    const location = await Location.findByIdAndUpdate(
+      idSede,
+      { $addToSet: { appointments:idCita } },
+      { new: true }
+    );
+
+    if (!location) {
+      return "Sede no encontrada";
+    }
+
+    return true;
+  } catch (error) {
+    throw error;
   }
 };

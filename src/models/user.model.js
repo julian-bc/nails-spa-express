@@ -26,7 +26,10 @@ const userSchema = mongoose.Schema({
     type: String,
     enum: ['customer', 'admin', 'employee'],
     default: 'customer'
-  }
+  },
+  locations: [{
+    type: mongoose.Schema.Types.ObjectId, ref: "Location"
+  }]
 });
 
 export default mongoose.model("User", userSchema)
