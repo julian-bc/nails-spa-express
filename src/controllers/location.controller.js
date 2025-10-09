@@ -8,6 +8,7 @@ export const getAllLocations = async (req, res) => {
   try {
     const locations = await Location.find()
       .populate("employees", "names email")
+      .populate("appointments", "schedule service")
       .skip(skip)
       .limit(limit);
 
@@ -25,6 +26,22 @@ export const getAllLocations = async (req, res) => {
     res.status(500).send({ error: "Error fetching paginated locations" });
   }
 };
+
+export const getLocationById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const location = await Location.findById(id)
+      .populate("employees", "names email")
+      .populate("appointments", "schedule service");
+    if (!location) {
+      return res.status(404).send({ error: "Location not found" });
+    }
+    res.send(location);
+  } catch (error) { 
+    console.error(error);
+    res.status(500).send({ error: "Error fetching location by ID" });
+  }
+}
 
 export const addEmployeesToLocation = async (req, res) => {
   const { id } = req.params; 

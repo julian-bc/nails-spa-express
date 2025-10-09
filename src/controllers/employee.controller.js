@@ -9,7 +9,7 @@ export const getAllEmployees = async (req, res) => {
   
     try {
       const employees = await User.find({ role: "employee" })
-        .select("_id names email salary phone")
+        .select("_id names email salary phone locations")
         .skip(skip)
         .limit(limit);
       
@@ -40,15 +40,38 @@ export const saveEmployee = async (req, res) => {
       password: passwordHashed,
       salary: employee.salary,
       phone: employee.phone,
-      role: "employee"
+      role: "employee",
+      locations: employee.locations
     });
 
   try {
     await newUser.save();
   } catch (error) {
     console.error(error);
-    res.status(500).send({ error: "Error is happened to save employee" });
+    res.status(500).send({ error: "Error ocurred saving the employee" });
   }
 
-  res.status(201).send({ message: "employee register successfully!" });
+  res.status(201).send({ message: "employee register successfully!" , body: newUser });
 }
+
+export const addLocationsToUser = async (req, res) => {
+  const { id } = req.params; // ID del usuario
+  const { locations } = req.body; // Array de IDs de sedes
+
+  try {
+    const user = await User.findByIdAndUpdate(
+      id,
+      { $addToSet: { locations: { $each: locations } } },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).send({ error: "Usuario no encontrado" });
+    }
+
+    res.send(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ error: "Error al añadir sedes al usuario" });
+  }
+};

@@ -7,7 +7,7 @@ export const getAllServices = async (req, res) => {
 
   try {
     const services = await Service.find()
-      .populate("staffCapable", "names email") // 👈 Aquí
+      .populate("staffCapable", "names email, locations") 
       .skip(skip)
       .limit(limit);
 
@@ -23,6 +23,21 @@ export const getAllServices = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).send({ error: "Error fetching paginated services" });
+  }
+};
+
+export const getServiceById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const service = await Service.findById(id).populate("staffCapable", "names email, locations");
+    if (!service) {
+      return res.status(404).send({ error: "Service not found" });
+    }
+    res.send(service);
+  }
+  catch (error) {
+    console.error(error);
+    res.status(500).send({ error: "Error fetching service by ID" });
   }
 };
 

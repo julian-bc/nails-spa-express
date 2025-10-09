@@ -32,7 +32,10 @@ const locationSchema = mongoose.Schema({
   pictureUrl: {
     type: String,
     trim: true
-  }
+  },
+  appointments: [
+    { type: mongoose.Schema.Types.ObjectId, ref: "Appointments" }
+  ]
 });
 
 export default mongoose.model("Location", locationSchema)

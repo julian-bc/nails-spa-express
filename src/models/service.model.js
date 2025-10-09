@@ -18,6 +18,10 @@ const serviceSchema = mongoose.Schema({
   staffCapable: [
     { type: mongoose.Schema.Types.ObjectId, ref: "User" } 
   ],
+  duration: {
+    type: Number, // duración va a ser en minutos
+    required: true
+  },
   pictureUrl: {
       type: String,
       trim: true
