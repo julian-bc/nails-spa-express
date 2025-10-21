@@ -3,6 +3,86 @@ import Service from "../models/service.model.js";
 import Location from "../models/location.model.js";
 import User from "../models/user.model.js";
 import mongoose from "mongoose";
+import {
+  buildAppointmentFilter,
+  parsePagination,
+  buildPaginationMeta,
+} from "../utils/appointmentsQueryHelpers.js";
+
+const baseQuery = (filter, skip, limit) =>
+  Promise.all([
+    Appointments.countDocuments(filter),
+    Appointments.find(filter)
+      .sort({ "schedule.date": 1, "schedule.start": 1 })
+      .skip(skip)
+      .limit(limit)
+      .populate({ path: "service", select: "name price" })
+      .populate({ path: "employee", select: "names phone" })
+      .populate({ path: "location", select: "name address" })
+      .populate({ path: "user", select: "names" }),
+  ]);
+
+// GET - Obtener todas las citas
+export const getAppointments = async (req, res) => {
+  try {
+    const { date, from, to, cancelled, page, limit } = req.query;
+
+    const { _page, _limit, skip } = parsePagination({ page, limit });
+    const filter = buildAppointmentFilter({ date, from, to, cancelled });
+
+    const [total, items] = await baseQuery(filter, skip, _limit);
+    const meta = buildPaginationMeta(total, _page, _limit);
+
+    res.status(200).json({ meta, filter, data: items });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ message: err.message || "Error al obtener citas." });
+  }
+};
+
+// GET - Obtener citas por empleado
+export const getAppointmentsByEmployee = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { date, from, to, cancelled, page, limit } = req.query;
+
+    if (!mongoose.isValidObjectId(id))
+      return res.status(400).json({ message: "ID de empleado inválido." });
+
+    const { _page, _limit, skip } = parsePagination({ page, limit });
+    const filter = { employee: new mongoose.Types.ObjectId(id), ...buildAppointmentFilter({ date, from, to, cancelled }) };
+
+    const [total, items] = await baseQuery(filter, skip, _limit);
+    const meta = buildPaginationMeta(total, _page, _limit);
+
+    res.status(200).json({ meta, filter, data: items });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ message: err.message || "Error al obtener citas por empleado." });
+  }
+};
+
+// GET - Obtener citas por usuario
+export const getAppointmentsByUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { date, from, to, cancelled, page, limit } = req.query;
+
+    if (!mongoose.isValidObjectId(id))
+      return res.status(400).json({ message: "ID de usuario inválido." });
+
+    const { _page, _limit, skip } = parsePagination({ page, limit });
+    const filter = { user: new mongoose.Types.ObjectId(id), ...buildAppointmentFilter({ date, from, to, cancelled }) };
+
+    const [total, items] = await baseQuery(filter, skip, _limit);
+    const meta = buildPaginationMeta(total, _page, _limit);
+
+    res.status(200).json({ meta, filter, data: items });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ message: err.message || "Error al obtener citas por usuario." });
+  }
+};
 
 
 //Guardar la cita
