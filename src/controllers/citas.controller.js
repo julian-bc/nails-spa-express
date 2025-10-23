@@ -263,6 +263,49 @@ const appointments = await Appointments.find({
 };
 
 
+// Cancelar una cita
+export const deleteAppointment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body;
+
+    if (!mongoose.isValidObjectId(id) || !mongoose.isValidObjectId(userId)) {
+      return res.status(400).json({ message: "ID de cita o usuario inválido." });
+    }
+
+    const appointment = await Appointments.findById(id);
+
+    if (!appointment) {
+      return res.status(404).json({ message: "Cita no encontrada." });
+    }
+
+    if (appointment.user.toString() !== userId) {
+      return res.status(403).json({ message: "No tienes permiso para cancelar esta cita." });
+    }
+
+    if (appointment.cancelled) {
+      return res.status(400).json({ message: "Esta cita ya ha sido cancelada." });
+    }
+
+    await Location.findByIdAndUpdate(
+      appointment.location,
+      { $pull: { appointments: appointment._id } }
+    );
+
+    await Appointments.findByIdAndDelete(id);
+
+    return res.status(200).json({ 
+      message: "Cita cancelada exitosamente.",
+      appointmentId: id
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Error al cancelar la cita." });
+  }
+}
+
+
 //Esta función encargada de generar los bloques de tiempo
 //Entre una hora de inicio y una hora de fin con un intervalo dado (en minutos)
 function generateTimeSlots(startTime, endTime, intervalMinutes) {
