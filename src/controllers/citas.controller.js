@@ -113,6 +113,36 @@ export const createAppointment = async (req, res) => {
     const locationId = new mongoose.Types.ObjectId(location);
     const userId = new mongoose.Types.ObjectId(user);
     const employeeId = employee ? new mongoose.Types.ObjectId(employee) : null;
+
+    const conflictFilter = {
+      location: locationId,
+      "schedule.date": schedule.date,
+      $or: [
+        {
+          "schedule.start": { $lt: schedule.end},
+          "schedule.end": { $gt: schedule.start }
+        },
+      ],
+    };
+
+    if (employeeId) {
+      conflictFilter.employee = employeeId;
+    } else {
+      conflictFilter.employee = { $exists: true };
+    }
+
+    const conflictingAppointments = await Appointments.find(conflictFilter).select("schedule employee");
+    if (conflictingAppointments.length > 0) {
+      return res.status(409).json({
+        message: "Conflicto de horario con una cita existente.",
+        conflicts: conflictingAppointments.map(a => ({
+          employee: a.employee,
+          start: a.schedule.start,
+          end: a.schedule.end,
+        })),
+      });
+    }
+
     const descriptionValue = additionalDescription?.trim() ? additionalDescription.trim() : null;
 
     // Crear la cita
