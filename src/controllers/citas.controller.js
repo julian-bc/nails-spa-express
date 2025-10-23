@@ -92,7 +92,7 @@ export const createAppointment = async (req, res) => {
     const { service, employee, location, schedule, additionalDescription, user } = req.body;
 
     // Validar que los campos requeridos estén presentes
-    if (!service || !location || !schedule || !schedule.start || !schedule.end || !additionalDescription || !user) {
+    if (!service || !location || !schedule || !schedule.start || !schedule.end || !user) {
       return res.status(400).json({ message: "Todos los campos requeridos deben ser proporcionados." });
     }
 
@@ -113,6 +113,7 @@ export const createAppointment = async (req, res) => {
     const locationId = new mongoose.Types.ObjectId(location);
     const userId = new mongoose.Types.ObjectId(user);
     const employeeId = employee ? new mongoose.Types.ObjectId(employee) : null;
+    const descriptionValue = additionalDescription?.trim() ? additionalDescription.trim() : null;
 
     // Crear la cita
     const newAppointment = new Appointments({
@@ -120,7 +121,7 @@ export const createAppointment = async (req, res) => {
       employee: employeeId,
       location: locationId,
       schedule,
-      additionalDescription,
+      additionalDescription: descriptionValue,
       user: userId,
       cancelled: false // Por defecto, la cita no está cancelada
     });
