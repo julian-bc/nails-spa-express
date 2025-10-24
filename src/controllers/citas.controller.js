@@ -179,6 +179,91 @@ export const createAppointment = async (req, res) => {
   }
 };
 
+// PUT - Actualizar una cita existente
+export const updateAppointment = async (req, res) => {
+try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    // Validar ID
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ message: "ID de cita inválido." });
+    }
+
+    // Verificar que la cita exista
+    const appointment = await Appointments.findById(id);
+    if (!appointment) {
+      return res.status(404).json({ message: "Cita no encontrada." });
+    }
+
+    // Validación de campos individuales
+    if (updates.service && !mongoose.isValidObjectId(updates.service)) {
+      return res.status(400).json({ message: "El ID del servicio no es válido." });
+    }
+
+    if (updates.location && !mongoose.isValidObjectId(updates.location)) {
+      return res.status(400).json({ message: "El ID de la sede no es válido." });
+    }
+
+    if (updates.user && !mongoose.isValidObjectId(updates.user)) {
+      return res.status(400).json({ message: "El ID del usuario no es válido." });
+    }
+
+    if (updates.employee && !mongoose.isValidObjectId(updates.employee)) {
+      return res.status(400).json({ message: "El ID del empleado no es válido." });
+    }
+
+    // Validar horario si se proporciona
+    if (updates.schedule) {
+      const { start, end } = updates.schedule;
+      if (!start || !end) {
+        return res.status(400).json({ message: "El horario debe incluir hora de inicio y fin." });
+      }
+      if (start >= end) {
+        return res.status(400).json({ message: "La hora de inicio debe ser anterior a la hora de fin." });
+      }
+    }
+
+    // Limpiar descripción si se envía
+    if (updates.hasOwnProperty("additionalDescription")) {
+      updates.additionalDescription = updates.additionalDescription?.trim() || null;
+    }
+
+    // Si cambia de sede, actualizar las referencias en Location
+    if (updates.location && updates.location.toString() !== appointment.location.toString()) {
+      // Remover de la sede anterior
+      await Location.findByIdAndUpdate(appointment.location, {
+        $pull: { appointments: appointment._id },
+      });
+      // Agregar a la nueva sede
+      await Location.findByIdAndUpdate(updates.location, {
+        $addToSet: { appointments: appointment._id },
+      });
+    }
+
+    // Actualizar campos
+    Object.assign(appointment, updates);
+
+    // Guardar cambios
+    const updatedAppointment = await appointment.save();
+
+    // Populate para devolver datos completos
+    const populatedAppointment = await Appointments.findById(updatedAppointment._id)
+      .populate({ path: "service", select: "name price" })
+      .populate({ path: "employee", select: "names phone" })
+      .populate({ path: "location", select: "name address" })
+      .populate({ path: "user", select: "names" });
+
+    return res.status(200).json({
+      message: "Cita actualizada exitosamente.",
+      appointment: populatedAppointment,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Error al actualizar la cita." });
+  }
+};
+
 
 //Insertar la cita a la sede
 //Esto nos ayuda a tener claro la disponibilidad de citas
@@ -292,6 +377,49 @@ const appointments = await Appointments.find({
     return res.status(500).json({ message: "Error al calcular disponibilidad." });
   }
 };
+
+
+// Cancelar una cita
+export const deleteAppointment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body;
+
+    if (!mongoose.isValidObjectId(id) || !mongoose.isValidObjectId(userId)) {
+      return res.status(400).json({ message: "ID de cita o usuario inválido." });
+    }
+
+    const appointment = await Appointments.findById(id);
+
+    if (!appointment) {
+      return res.status(404).json({ message: "Cita no encontrada." });
+    }
+
+    if (appointment.user.toString() !== userId) {
+      return res.status(403).json({ message: "No tienes permiso para cancelar esta cita." });
+    }
+
+    if (appointment.cancelled) {
+      return res.status(400).json({ message: "Esta cita ya ha sido cancelada." });
+    }
+
+    await Location.findByIdAndUpdate(
+      appointment.location,
+      { $pull: { appointments: appointment._id } }
+    );
+
+    await Appointments.findByIdAndDelete(id);
+
+    return res.status(200).json({ 
+      message: "Cita cancelada exitosamente.",
+      appointmentId: id
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Error al cancelar la cita." });
+  }
+}
 
 
 //Esta función encargada de generar los bloques de tiempo
