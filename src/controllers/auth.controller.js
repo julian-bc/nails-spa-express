@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import config from "../config/config.js";
-import { generateTokenAccess } from "../utils/jwt.util.js";
+import { generateTokenAccess, validateTokenAccess } from "../utils/jwt.util.js";
 import User from "../models/user.model.js";
 
 export const register = async (req, res) => {
@@ -64,4 +64,19 @@ export const logout = (req, res) => {
   res.clearCookie("token");
   res.clearCookie("role");
   res.send({ message: "logout successfully!" });
+}
+
+export const check = (req, res) => {
+  const token = req.cookies.token;
+
+  if (!token) {
+    return res.status(401).send({ authenticated: false, error: 'Token no encontrado' });
+  }
+
+  try {
+    const userData = validateTokenAccess(token)
+    return res.send({ authenticated: true, user: userData, role: userData.role });
+  } catch (error) {
+    return res.status(401).send({ authenticated: false, error: 'Token inválido o expirado' });
+  }
 }
