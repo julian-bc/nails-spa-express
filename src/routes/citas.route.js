@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { 
     createAppointment,
+    updateAppointment,
     getAvailabilityForServiceInLocation,
     getAppointments,
     getAppointmentsByEmployee, 
@@ -16,6 +17,7 @@ router.get("/", authMiddleware, allowRoles("admin", "employee"), getAppointments
 router.get("/employee/:id", authMiddleware, allowRoles("admin", "employee"), getAppointmentsByEmployee);
 router.get("/user/:id", getAppointmentsByUser);
 router.post("/", authMiddleware, allowRoles("admin", "employee"), createAppointment);
+router.put("/:id", authMiddleware, allowRoles("admin", "employee"), updateAppointment);
 router.post("/availability", getAvailabilityForServiceInLocation);
 
 export default router
