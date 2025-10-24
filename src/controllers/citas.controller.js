@@ -85,7 +85,7 @@ export const getAppointmentsByUser = async (req, res) => {
 };
 
 
-//Guardar la cita
+// Guardar la cita
 //Funcion que se encarga meramente de guardar la cita en la base de datos
 export const createAppointment = async (req, res) => {
   try {
@@ -223,6 +223,42 @@ try {
         return res.status(400).json({ message: "La hora de inicio debe ser anterior a la hora de fin." });
       }
     }
+
+    // Validar conflictos de horario si se actualizan horario, sede o empleado
+    const newSchedule = updates.schedule || appointment.schedule;
+    const newLocation = updates.location || appointment.location;
+    const newEmployee = updates.employee || appointment.employee;
+
+    // Solo validamos si hay un empleado asignado
+    if (newEmployee && newSchedule?.date && newSchedule?.start && newSchedule?.end) {
+      const conflictFilter = {
+        _id: { $ne: id }, // Excluir la cita actual
+        location: new mongoose.Types.ObjectId(newLocation),
+        employee: new mongoose.Types.ObjectId(newEmployee),
+        "schedule.date": newSchedule.date,
+        $or: [
+          {
+            "schedule.start": { $lt: newSchedule.end },
+            "schedule.end": { $gt: newSchedule.start },
+          },
+        ],
+      };
+
+      const conflicts = await Appointments.find(conflictFilter).select("schedule employee");
+
+      if (conflicts.length > 0) {
+        return res.status(409).json({
+          message: "Conflicto de horario con otra cita existente.",
+          conflicts: conflicts.map((a) => ({
+            employee: a.employee,
+            start: a.schedule.start,
+            end: a.schedule.end,
+          })),
+        });
+      }
+    }
+
+    // --- Fin de validación --
 
     // Limpiar descripción si se envía
     if (updates.hasOwnProperty("additionalDescription")) {
