@@ -9,7 +9,7 @@ import connectDB from "./src/libs/conn.js";
 import locationRouter from "./src/routes/location.route.js";
 import serviceRouter from "./src/routes/service.route.js";
 import citasRouter from "./src/routes/citas.route.js";
-
+import cors from "cors";
 const app = express();
 
 if (config.nodeEnv !== "production") {
@@ -18,6 +18,12 @@ if (config.nodeEnv !== "production") {
 
 app.use(express.json());
 app.use(cookieParser());
+
+app.use(cors({
+  origin: "http://localhost:5173", // o el puerto donde corre tu frontend
+  credentials: true
+}));
+
 
 connectDB();
 
