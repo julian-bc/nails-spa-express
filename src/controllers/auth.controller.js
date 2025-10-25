@@ -56,6 +56,10 @@ export const login = async (req, res) => {
     httpOnly: true,
     maxAge: 1000 * 60 * 60 // 1h
   });
+  res.cookie("userId", userSaved._id, {
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60 // 1h
+  });
 
   res.send({ message: "login successfully!" });
 }
@@ -63,6 +67,7 @@ export const login = async (req, res) => {
 export const logout = (req, res) => {
   res.clearCookie("token");
   res.clearCookie("role");
+  res.clearCookie("userId")
   res.send({ message: "logout successfully!" });
 }
 
@@ -75,7 +80,7 @@ export const check = (req, res) => {
 
   try {
     const userData = validateTokenAccess(token)
-    return res.send({ authenticated: true, user: userData, role: userData.role });
+    return res.send({ authenticated: true, role: userData.role });
   } catch (error) {
     return res.status(401).send({ authenticated: false, error: 'Token inválido o expirado' });
   }
