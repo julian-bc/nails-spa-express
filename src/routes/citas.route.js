@@ -17,8 +17,8 @@ const router = Router();
 router.get("/", authMiddleware, allowRoles("admin", "employee"), getAppointments);
 router.get("/employee/:id", authMiddleware, allowRoles("admin", "employee"), getAppointmentsByEmployee);
 router.get("/user/:id", getAppointmentsByUser);
-router.post("/", authMiddleware, allowRoles("admin", "employee"), createAppointment);
-router.put("/:id", authMiddleware, allowRoles("admin", "employee"), updateAppointment);
+router.post("/", authMiddleware, createAppointment);
+router.put("/:id", authMiddleware, updateAppointment);
 router.post("/availability", getAvailabilityForServiceInLocation);
 router.delete("/:id", authMiddleware, deleteAppointment);
 
