@@ -6,6 +6,7 @@ import User from "../models/user.model.js";
 export const register = async (req, res) => {
   const user = req.body;
 
+  console.log(`Register user with email: ${user.email}`);
   const passwordHashed = await bcrypt.hash(user.password, config.salt);
   user.password = passwordHashed;
 

@@ -325,6 +325,7 @@ const addAppointmentToLocation = async (idSede, idCita, res) => {
 
 // Obtener disponibilidad de citas para un servicio en una sede específica
 export const getAvailabilityForServiceInLocation = async (req, res) => {
+  console.log("Solicitud de disponibilidad recibida:", req.body);
   try {
     const { idLocation, idService, date } = req.body;
 
@@ -339,12 +340,19 @@ export const getAvailabilityForServiceInLocation = async (req, res) => {
     const service = await Service.findById(idService).select("staffCapable duration");
     const location = await Location.findById(idLocation).select("employees appointments");
 
-    if (!service || !location) {
-      return res.status(404).json({ message: "Servicio o sede no encontrados." });
+
+    if(!location) {
+      return res.status(404).json({ message: "Sede no encontrada." });
     }
 
-    const availableStaffIds = location.employees.filter(emp =>
-      service.staffCapable.map(id => id.toString()).includes(emp.toString())
+    if (!service || !location) {
+      return res.status(404).json({ message: "Servicio no encontradoassaas." });
+    }
+
+    
+
+    const availableStaffIds = location.employees.filter(empId =>
+      service.staffCapable.some(staff => staff._id.toString() === empId.toString())
     );
 
     if (availableStaffIds.length === 0) {
