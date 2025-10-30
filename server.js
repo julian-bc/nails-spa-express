@@ -11,6 +11,8 @@ import serviceRouter from "./src/routes/service.route.js";
 import citasRouter from "./src/routes/citas.route.js";
 import recoveryRouter from "./src/routes/recovery.route.js";
 import cors from "cors";
+import { swaggerDocs } from "./src/config/swagger.js";
+
 const app = express();
 
 if (config.nodeEnv !== "production") {
@@ -37,4 +39,5 @@ app.use("/api/v1/appointments", citasRouter);
 
 app.listen(config.port, () => {
   console.log(`Server listening on port ${config.port}`);
+  swaggerDocs(app, config.port)
 });
