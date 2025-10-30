@@ -3,7 +3,8 @@ import config from "../config/config.js";
 import { generateTokenAccess, validateTokenAccess } from "../utils/jwt.util.js";
 import User from "../models/user.model.js";
 
-export const register = async (req, res) => {
+export const register = async(req, res) => {
+  let userSaved = undefined;
   const user = req.body;
 
   console.log(`Register user with email: ${user.email}`);
@@ -14,57 +15,71 @@ export const register = async (req, res) => {
     names: user.names,
     email: user.email,
     password: passwordHashed,
-    salary: null,
     phone: user.phone
   });
 
   try {
+    userSaved = await User.findOne({ email: newUser.email })
+    if (userSaved) {
+      return res.status(409).send({ error: `Usuario con email: ${newUser.email} se encuentra asociado a una cuenta, intente registrarse con otro email` });
+    }
+    
     await newUser.save();
-  } catch (error) {
-    console.error(error);
-    res.status(500).send({ error: "Error is happened to save user"} );
+  } catch (err) {
+    return res.status(500).send({ 
+      error: "Ocurrio un error al guardar el usuario",
+      ...(config.nodeEnv !== "production" && { stack: err.stack })
+    });
   }
 
-  res.status(201).send({ message: "register successfully!" });
+  res.status(201).send({ message: "Registro exitoso" });
 }
 
-export const login = async (req, res) => {
+export const login = async(req, res) => {
   let userSaved = undefined;
   const user = req.body;
 
-  console.log(`User try access with email:${user.email} pass:${user.password}`);
-  
   try {
     userSaved = await User.findOne({ email: user.email });
 
-    if (!userSaved) return res.status(404).send(`User not founded with email: ${user.email}`);
+    if (!userSaved) return res.status(404).send(`Usuario no encontrado con el correo electrónico: ${user.email}`);
 
     const isMatch = await bcrypt.compare(user.password, userSaved.password);
 
-    if (!isMatch) return res.status(401).send({ error: "Incorrect password!" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).send({ error: "Error is happened to login!" });
+    if (!isMatch) return res.status(401).send({ error: "Contraseña incorrecta" });
+    
+    userSaved.recoveryCode = null;
+    await userSaved.save();
+  } catch (err) {
+    return res.status(500).send({ 
+      error: "Ocurrio un error al iniciar sesión",
+      ...(config.nodeEnv !== "production" && { stack: err.stack })
+    });
   }
 
   const token = generateTokenAccess(userSaved);
   
   res.cookie("token", token, {
     httpOnly: true,
-    maxAge: 1000 * 60 * 60 //1h
+    maxAge: 1000 * 60 * 60
   });
   res.cookie("role", userSaved.role, {
     httpOnly: true,
-    maxAge: 1000 * 60 * 60 // 1h
+    maxAge: 1000 * 60 * 60
+  });
+  res.cookie("userId", userSaved._id, {
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60
   });
 
-  res.send({ message: "login successfully!" });
+  res.send({ message: "Inicio de sesión exitoso" });
 }
 
-export const logout = (req, res) => {
+export const logout = (_req, res) => {
   res.clearCookie("token");
   res.clearCookie("role");
-  res.send({ message: "logout successfully!" });
+  res.clearCookie("userId");
+  res.send({ message: "Cierre de sesión exitoso" });
 }
 
 export const check = (req, res) => {
@@ -76,7 +91,7 @@ export const check = (req, res) => {
 
   try {
     const userData = validateTokenAccess(token)
-    return res.send({ authenticated: true, user: userData, role: userData.role });
+    return res.send({ authenticated: true,  role: userData.role });
   } catch (error) {
     return res.status(401).send({ authenticated: false, error: 'Token inválido o expirado' });
   }

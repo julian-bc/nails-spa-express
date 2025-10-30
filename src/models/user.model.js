@@ -16,7 +16,14 @@ const userSchema = mongoose.Schema({
     type: String,
     required: true
   },
-  salary: Number,
+  salary: {
+    type: Number,
+    default: null
+  },
+  recoveryCode: {
+    type: String,
+    default: null
+  },
   phone: {
     type: String,
     required: true,
