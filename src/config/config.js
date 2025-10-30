@@ -8,7 +8,9 @@ const {
   SERVER_DB,
   SALT_ROUNDS,
   TOKEN_SECRET,
-  NODE_ENV
+  NODE_ENV,
+  GOOGLE_APP_PASS,
+  FRONT_ORIGIN
 } = process.env
 
 export default {
@@ -17,4 +19,6 @@ export default {
   salt: Number(SALT_ROUNDS),
   tokenSecret: TOKEN_SECRET,
   nodeEnv: NODE_ENV,
+  googleAppPass: GOOGLE_APP_PASS,
+  frontOrigin: FRONT_ORIGIN
 }
