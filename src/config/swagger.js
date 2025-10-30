@@ -23,7 +23,7 @@ const swaggerOptions = {
     security: [{ cookieAuth: [] }],
     servers: [
       {
-        url: "http://localhost:4000/api/v1",
+        url: "http://localhost:3000/api/v1",
         description: "Servidor de desarrollo local",
       },
     ],
