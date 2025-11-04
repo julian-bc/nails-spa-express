@@ -58,6 +58,8 @@ export const login = async(req, res) => {
   }
 
   const token = generateTokenAccess(userSaved);
+
+  const userIdString = userSaved._id.toString();
   
   res.cookie("token", token, {
     httpOnly: true,
@@ -67,7 +69,7 @@ export const login = async(req, res) => {
     httpOnly: true,
     maxAge: 1000 * 60 * 60 * 24
   });
-  res.cookie("userId", userSaved._id, {
+  res.cookie("userId", userIdString, {
     httpOnly: true,
     maxAge: 1000 * 60 * 60 * 24
   });

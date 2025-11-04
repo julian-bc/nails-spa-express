@@ -65,14 +65,16 @@ export const getAppointmentsByEmployee = async (req, res) => {
 // GET - Obtener citas por usuario
 export const getAppointmentsByUser = async (req, res) => {
   try {
+    const userId = req.cookies.userId;
+    console.log("User ID from cookies:", userId);
     const { id } = req.params;
     const { date, from, to, cancelled, page, limit } = req.query;
 
-    if (!mongoose.isValidObjectId(id))
+    if (!mongoose.isValidObjectId(userId))
       return res.status(400).json({ message: "ID de usuario inválido." });
 
     const { _page, _limit, skip } = parsePagination({ page, limit });
-    const filter = { user: new mongoose.Types.ObjectId(id), ...buildAppointmentFilter({ date, from, to, cancelled }) };
+    const filter = { user: new mongoose.Types.ObjectId(userId), ...buildAppointmentFilter({ date, from, to, cancelled }) };
 
     const [total, items] = await baseQuery(filter, skip, _limit);
     const meta = buildPaginationMeta(total, _page, _limit);
@@ -92,6 +94,7 @@ export const createAppointment = async (req, res) => {
     const { service, employee, location, schedule, additionalDescription } = req.body;
     const user = req.cookies.userId;
 
+    console.log("UserID:", user);
     // Validar que los campos requeridos estén presentes
     if (!service || !location || !schedule || !schedule.start || !schedule.end || !user) {
       return res.status(400).json({ message: "Todos los campos requeridos deben ser proporcionados." });

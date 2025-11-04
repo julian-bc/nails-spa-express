@@ -460,7 +460,7 @@ router.get("/employee/:id", authMiddleware, allowRoles("admin", "employee"), get
  *                   type: string
  *                   example: "Error al obtener citas por usuario."
  */
-router.get("/user/:id", getAppointmentsByUser);
+router.get("/user/", authMiddleware, getAppointmentsByUser);
 
 /**
  * @swagger
