@@ -89,7 +89,8 @@ export const getAppointmentsByUser = async (req, res) => {
 //Funcion que se encarga meramente de guardar la cita en la base de datos
 export const createAppointment = async (req, res) => {
   try {
-    const { service, employee, location, schedule, additionalDescription, user } = req.body;
+    const { service, employee, location, schedule, additionalDescription } = req.body;
+    const user = req.cookies.userId;
 
     // Validar que los campos requeridos estén presentes
     if (!service || !location || !schedule || !schedule.start || !schedule.end || !user) {
@@ -181,7 +182,7 @@ export const createAppointment = async (req, res) => {
 
 // PUT - Actualizar una cita existente
 export const updateAppointment = async (req, res) => {
-try {
+  try {
     const { id } = req.params;
     const updates = req.body;
 

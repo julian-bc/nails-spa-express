@@ -61,15 +61,15 @@ export const login = async(req, res) => {
   
   res.cookie("token", token, {
     httpOnly: true,
-    maxAge: 1000 * 60 * 60
+    maxAge: 1000 * 60 * 60 * 24
   });
   res.cookie("role", userSaved.role, {
     httpOnly: true,
-    maxAge: 1000 * 60 * 60
+    maxAge: 1000 * 60 * 60 * 24
   });
   res.cookie("userId", userSaved._id, {
     httpOnly: true,
-    maxAge: 1000 * 60 * 60
+    maxAge: 1000 * 60 * 60 * 24
   });
 
   res.send({ message: "Inicio de sesión exitoso" });
