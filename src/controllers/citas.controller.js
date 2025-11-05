@@ -431,7 +431,7 @@ const appointments = await Appointments.find({
 export const deleteAppointment = async (req, res) => {
   try {
     const { id } = req.params;
-    const { userId } = req.body;
+    const userId = req.cookies.userId;
 
     if (!mongoose.isValidObjectId(id) || !mongoose.isValidObjectId(userId)) {
       return res.status(400).json({ message: "ID de cita o usuario inválido." });
