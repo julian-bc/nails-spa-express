@@ -443,7 +443,7 @@ export const deleteAppointment = async (req, res) => {
       return res.status(404).json({ message: "Cita no encontrada." });
     }
 
-    if (appointment.user.toString() !== userId) {
+    if (appointment.user.toString() !== userId.toString()) {
       return res.status(403).json({ message: "No tienes permiso para cancelar esta cita." });
     }
 
