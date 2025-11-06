@@ -6,7 +6,8 @@ import {
     getAppointments,
     getAppointmentsByEmployee, 
     getAppointmentsByUser,
-    deleteAppointment 
+    deleteAppointment, 
+    getAppointmentsBySede
     } from "../controllers/citas.controller.js";
 import { authMiddleware } from "../middlewares/token.middleware.js";
 import { allowRoles } from "../middlewares/allowRoles.middleware.js";
@@ -461,6 +462,8 @@ router.get("/employee/:id", authMiddleware, allowRoles("admin", "employee"), get
  *                   example: "Error al obtener citas por usuario."
  */
 router.get("/user/", authMiddleware, getAppointmentsByUser);
+
+router.get("/sede/:sede", authMiddleware, allowRoles("manager"), getAppointmentsBySede);
 
 /**
  * @swagger

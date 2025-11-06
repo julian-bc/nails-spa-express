@@ -8,6 +8,7 @@ import {
   parsePagination,
   buildPaginationMeta,
 } from "../utils/appointmentsQueryHelpers.js";
+import { verifyManagerByLocation } from "./user.controller.js";
 
 const baseQuery = (filter, skip, limit) =>
   Promise.all([
@@ -86,6 +87,42 @@ export const getAppointmentsByUser = async (req, res) => {
   }
 };
 
+export const getAppointmentsBySede = async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  const sedeName = req.params.sede;
+
+  const location = await Location.findOne({ name: sedeName });
+  if (!location) return res.status(404).send({ error: "Sede no encontrada" });
+
+  const hasLocation = verifyManagerByLocation(req.cookies.userId, location._id);
+  
+  if (!hasLocation) return res.status(401).send({ error: "User no tiene los privilegios para realizar esta consulta" });
+
+  try {
+    const appointments = await Appointments.find({
+      locations: location._id
+    })
+    .skip(skip)
+    .limit(limit);
+
+    const total = await Appointments.countDocuments({
+      locations: location._id
+    });
+
+    res.send({
+      page,
+      limit,
+      totalPages: Math.ceil(total/limit),
+      totalAppointments: total,
+      appointments
+    });
+  } catch (err) {
+    res.status(500).send({ error: "Error al obtener citas por sede" });
+  }
+}
 
 // Guardar la cita
 //Funcion que se encarga meramente de guardar la cita en la base de datos
