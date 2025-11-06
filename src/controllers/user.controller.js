@@ -59,3 +59,16 @@ export const deleteById = async (req, res) => {
 
   res.send({ message: `User deleted with id: ${id} successfully!` });
 }
+
+export const verifyManagerByLocation = async (userId, locationId) => {
+  try {
+    const manager = await User.findById(userId).select('locations');
+    if (!manager) return false;
+
+    const hasLocation = manager.locations.some(loc => loc.toString() === locationId.toString());
+
+    return hasLocation;
+  } catch (err) {
+    return false;
+  }
+}
