@@ -31,7 +31,7 @@ const userSchema = mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['customer', 'admin', 'employee'],
+    enum: ['customer', 'admin', 'employee', 'manager'],
     default: 'customer'
   },
   locations: [{

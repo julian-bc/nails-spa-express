@@ -66,11 +66,9 @@ export const login = async(req, res) => {
     maxAge: 1000 * 60 * 60 * 24
   });
   res.cookie("role", userSaved.role, {
-    httpOnly: true,
     maxAge: 1000 * 60 * 60 * 24
   });
   res.cookie("userId", userIdString, {
-    httpOnly: true,
     maxAge: 1000 * 60 * 60 * 24
   });
 

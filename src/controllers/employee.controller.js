@@ -1,6 +1,7 @@
 import config from "../config/config.js";
 import bcrypt from "bcrypt";
 import User from "../models/user.model.js";
+import { verifyManagerByLocation } from "./user.controller.js";
 
 export const getAllEmployees = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
@@ -26,6 +27,46 @@ export const getAllEmployees = async (req, res) => {
       console.error(error);
       res.status(500).send({ error: "Error fetching paginated customers" });
     }
+}
+
+export const getAllBySede = async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  const sedeName = req.params.sede;
+
+  const location = await Location.findOne({ name: sedeName });
+  if (!location) return res.status(404).send({ error: "Sede no encontrada" });
+
+  const hasLocation = verifyManagerByLocation(req.cookies.userId, location._id);
+
+  if (!hasLocation) return res.status(401).send({ error: "User no tiene los privilegios para realizar esta consulta" });
+
+  try { 
+    const employees = await User.find({
+      role: "employee",
+      locations: location._id
+    })
+    .select("_id names email salary phone")
+    .skip(skip)
+    .limit(limit);
+    
+    const total = await User.countDocuments({
+      role: "employee",
+      locations: location._id
+    });
+  
+    res.send({
+      page,
+      limit,
+      totalPages: Math.ceil(total/limit),
+      totalEmployees: total,
+      employees
+    });
+  } catch (err) {
+    res.status(500).send({ error: "Error al obtener empleados por sede" });
+  }
 }
 
 export const saveEmployee = async (req, res) => {
