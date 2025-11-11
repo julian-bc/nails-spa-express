@@ -2,6 +2,7 @@ import config from "../config/config.js";
 import bcrypt from "bcrypt";
 import User from "../models/user.model.js";
 import { verifyManagerByLocation } from "./user.controller.js";
+import Location from "../models/location.model.js";
 
 export const getAllEmployees = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
@@ -39,9 +40,9 @@ export const getAllBySede = async (req, res) => {
   const location = await Location.findOne({ name: sedeName });
   if (!location) return res.status(404).send({ error: "Sede no encontrada" });
 
-  const hasLocation = verifyManagerByLocation(req.cookies.userId, location._id);
+  // const hasLocation = verifyManagerByLocation(req.cookies.userId, location._id);
 
-  if (!hasLocation) return res.status(401).send({ error: "User no tiene los privilegios para realizar esta consulta" });
+  // if (!hasLocation) return res.status(401).send({ error: "User no tiene los privilegios para realizar esta consulta" });
 
   try { 
     const employees = await User.find({

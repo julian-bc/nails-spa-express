@@ -43,8 +43,12 @@ export const getServiceById = async (req, res) => {
 
 
 export const addStaffToService = async (req, res) => {
+
+
   const { id } = req.params;
   const { staffCapable } = req.body; 
+
+  console.log("Adding staff to service:", {staffCapable });
 
   try {
     const service = await Service.findByIdAndUpdate(
