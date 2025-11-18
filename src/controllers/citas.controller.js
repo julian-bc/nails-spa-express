@@ -93,24 +93,32 @@ export const getAppointmentsBySede = async (req, res) => {
   const skip = (page - 1) * limit;
   const sedeName = req.params.sede;
 
+  const { date } = req.query
+  console.log("Parámetros recibidos - Sede:", sedeName, "Fecha:", date);
   try {
     const location = await Location.findOne({ name: sedeName });
-    if (!location) return res.status(404).send({ error: "Sede no encontrada" })
-      // const hasLocation = verifyManagerByLocation(req.cookies.userId, location._id);
-     // if (!hasLocation) return res.status(401).send({ error: "User no tiene los privilegios para realizar esta consulta" });;
+    if (!location) return res.status(404).send({ error: "Sede no encontrada" });
+
+    const today = new Date().toISOString().split("T")[0];
+    const { date } = req.query;
+
+    const filter = { location: location._id };
+    if (date) {
+      filter["schedule.date"] = date;
+    } else {
+      filter["schedule.date"] = { $gte: today };
+    }
 
     const [appointments, total] = await Promise.all([
-      Appointments.find({ location: location._id })
+      Appointments.find(filter)
         .populate("service", "name price")
         .populate("employee", "names phone")
         .populate("user", "names email")
-        .sort({ "schedule.date": 1 }) 
+        .sort({ "schedule.date": 1, "schedule.start": 1 })
         .skip(skip)
         .limit(limit),
-      Appointments.countDocuments({ location: location._id })
+      Appointments.countDocuments(filter)
     ]);
-
-    console.log("Citas encontradas para la sede:", appointments.length);
 
     res.send({
       page,
@@ -124,6 +132,7 @@ export const getAppointmentsBySede = async (req, res) => {
     res.status(500).send({ error: "Error al obtener citas por sede" });
   }
 };
+
 
 // Guardar la cita
 //Funcion que se encarga meramente de guardar la cita en la base de datos

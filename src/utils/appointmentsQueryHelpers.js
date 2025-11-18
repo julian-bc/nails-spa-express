@@ -19,6 +19,11 @@ export function buildAppointmentFilter({ date, from, to, cancelled }) {
     filter["schedule.date"] = {};
     if (from) filter["schedule.date"]["$gte"] = from;
     if (to) filter["schedule.date"]["$lte"] = to;
+  } else {
+    const today = new Date().toISOString().split("T")[0];
+    filter["schedule.date"] = { $gte: today };
+
+
   }
 
   // Filtro por canceladas
